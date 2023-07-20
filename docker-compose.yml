@@ -6,11 +6,13 @@ services:
     image: postgres:13
     environment:
       TZ: Asia/Tokyo
-      POSTGRES_PASSWORD: "yes"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: test_db
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./docker/pg:/var/lib/postgresql
     ports:
-      - 5432:5432
+      - 5433:5432
     networks:
       app_net:
         ipv4_address: '172.20.0.2'
@@ -34,7 +36,7 @@ services:
     depends_on:
       - db
     ports:
-      - 5000:3000 # ポートフォワード
+      - 5001:3000 # ポートフォワード
     networks:
       app_net:
         ipv4_address: '172.20.0.3'
