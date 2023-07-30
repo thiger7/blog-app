@@ -1,4 +1,4 @@
-class TaskController < ApplicationController
+class Api::V1::TasksController < ApplicationController
   def index
     if Task.count.zero?
       ['1st task', '2nd task', '3rd task'].each do |title|
