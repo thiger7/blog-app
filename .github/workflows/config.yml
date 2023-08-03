@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '!main'
+  pull_request:
+
+jobs:
+  test_backend:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1.2
+      - name: Setup cache key and directory for gems cache
+        uses: actions/cache@v1
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gem-use-ruby-${{ hashFiles('**/Gemfile.lock') }}
+      - name: Install Bundler
+        run: gem install bundler
+        env:
+          BUNDLE_PATH: vendor/bundle
+
+      - name: Install dependencies
+        run: bundle install --jobs 4 --retry 3
+        working-directory: backend
+
+      - name: db:create
+        run: bin/rails db:create
+        working-directory: backend
+        env:
+          POSTGRES_HOST: localhost
+          RAILS_ENV: test
+          POSTGRES_PORT: 5432
+          DATABASE_URL: postgres://postgres@localhost:5432/app_test
+
+      - name: db:migrate
+        run: bin/rails db:migrate
+        working-directory: backend
+        env:
+          POSTGRES_HOST: localhost
+          RAILS_ENV: test
+          POSTGRES_PORT: 5432
+          DATABASE_URL: postgres://postgres@localhost:5432/app_test
+
+      - name: Run tests
+        run: bundle exec rspec
+        working-directory: backend
+        env:
+          POSTGRES_HOST: localhost
+          RAILS_ENV: test
+          POSTGRES_PORT: 5432
+          DATABASE_URL: postgres://postgres@localhost:5432/app_test
+
+
+  test_frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 20
+
+      - name: Restore Node.js cache
+        uses: actions/cache@v2
+        with:
+          path: frontend/node_modules
+          key: v1-dependencies-${{ hashFiles('frontend/package.json') }}
+
+      - name: Install Node.js dependencies
+        run: npm install
+        working-directory: frontend
+
+      - name: Run frontend tests
+        run: npm run test
+        working-directory: frontend
