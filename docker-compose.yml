@@ -34,6 +34,9 @@ services:
     environment:
       TZ: Asia/Tokyo
     depends_on:
+      db:
+        condition: service_healthy
+    links:
       - db
     ports:
       - 5001:3000 # ポートフォワード
