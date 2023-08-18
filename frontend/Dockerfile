@@ -7,7 +7,6 @@ WORKDIR /app
 ENV LANG C.UTF-8
 ENV TZ Asia/Tokyo
 
-
 RUN npm install npm \
   &&  npm install ejs \
   &&  npm install next \
@@ -19,3 +18,9 @@ RUN npm install npm \
 RUN apk add --no-cache bash
 
 ADD . /app
+
+RUN npm run build
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start"]
