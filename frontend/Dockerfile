@@ -1,11 +1,12 @@
-# syntax=docker/dockerfile:1
-
-FROM node:18-alpine
+FROM --platform=linux/amd64 node:18-alpine
 
 WORKDIR /app
 
 ENV LANG C.UTF-8
 ENV TZ Asia/Tokyo
+
+ADD package.json /app/package.json
+ADD package-lock.json /app/package-lock.json
 
 RUN npm install npm \
   &&  npm install ejs \
